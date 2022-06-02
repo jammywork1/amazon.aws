@@ -569,33 +569,33 @@ def create_or_update_bucket(s3_client, module, location):
     #             result['public_access_block'] = {}
 
     # -- Bucket ownership
-    try:
-        bucket_ownership = get_bucket_ownership_cntrl(s3_client, name)
-        result['object_ownership'] = bucket_ownership
-    except KeyError as e:
-        # Some non-AWS providers appear to return policy documents that aren't
-        # compatible with AWS, cleanly catch KeyError so users can continue to use
-        # other features.
-        if delete_object_ownership or object_ownership is not None:
-            module.fail_json_aws(e, msg="Failed to get bucket object ownership settings")
-    except is_boto3_error_code(['NotImplemented', 'XNotImplemented']) as e:
-        if delete_object_ownership or object_ownership is not None:
-            module.fail_json_aws(e, msg="Failed to get bucket object ownership settings")
-    except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:  # pylint: disable=duplicate-except
-        module.fail_json_aws(e, msg="Failed to get bucket object ownership settings")
-    else:
-        if delete_object_ownership:
-            # delete S3 buckect ownership
-            if bucket_ownership is not None:
-                delete_bucket_ownership(s3_client, name)
-                changed = True
-                result['object_ownership'] = None
-        elif object_ownership is not None:
-            # update S3 bucket ownership
-            if bucket_ownership != object_ownership:
-                put_bucket_ownership(s3_client, name, object_ownership)
-                changed = True
-                result['object_ownership'] = object_ownership
+    # try:
+    #     bucket_ownership = get_bucket_ownership_cntrl(s3_client, name)
+    #     result['object_ownership'] = bucket_ownership
+    # except KeyError as e:
+    #     # Some non-AWS providers appear to return policy documents that aren't
+    #     # compatible with AWS, cleanly catch KeyError so users can continue to use
+    #     # other features.
+    #     if delete_object_ownership or object_ownership is not None:
+    #         module.fail_json_aws(e, msg="Failed to get bucket object ownership settings")
+    # except is_boto3_error_code(['NotImplemented', 'XNotImplemented']) as e:
+    #     if delete_object_ownership or object_ownership is not None:
+    #         module.fail_json_aws(e, msg="Failed to get bucket object ownership settings")
+    # except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:  # pylint: disable=duplicate-except
+    #     module.fail_json_aws(e, msg="Failed to get bucket object ownership settings")
+    # else:
+    #     if delete_object_ownership:
+    #         # delete S3 buckect ownership
+    #         if bucket_ownership is not None:
+    #             delete_bucket_ownership(s3_client, name)
+    #             changed = True
+    #             result['object_ownership'] = None
+    #     elif object_ownership is not None:
+    #         # update S3 bucket ownership
+    #         if bucket_ownership != object_ownership:
+    #             put_bucket_ownership(s3_client, name, object_ownership)
+    #             changed = True
+    #             result['object_ownership'] = object_ownership
 
     # -- Bucket ACL
     if acl:
@@ -886,15 +886,15 @@ def get_current_bucket_tags_dict(s3_client, bucket_name):
 #         return {}
 
 
-def get_bucket_ownership_cntrl(s3_client, bucket_name):
-    '''
-    Get current bucket public access block
-    '''
-    try:
-        bucket_ownership = s3_client.get_bucket_ownership_controls(Bucket=bucket_name)
-        return bucket_ownership['OwnershipControls']['Rules'][0]['ObjectOwnership']
-    except is_boto3_error_code(['OwnershipControlsNotFoundError', 'NoSuchOwnershipControls']):
-        return None
+# def get_bucket_ownership_cntrl(s3_client, bucket_name):
+#     '''
+#     Get current bucket public access block
+#     '''
+#     try:
+#         bucket_ownership = s3_client.get_bucket_ownership_controls(Bucket=bucket_name)
+#         return bucket_ownership['OwnershipControls']['Rules'][0]['ObjectOwnership']
+#     except is_boto3_error_code(['OwnershipControlsNotFoundError', 'NoSuchOwnershipControls']):
+#         return None
 
 
 def paginated_list(s3_client, **pagination_params):
