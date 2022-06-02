@@ -359,8 +359,8 @@ def create_or_update_bucket(s3_client, module, location):
     versioning = module.params.get("versioning")
     encryption = module.params.get("encryption")
     encryption_key_id = module.params.get("encryption_key_id")
-    public_access = module.params.get("public_access")
-    delete_public_access = module.params.get("delete_public_access")
+    # public_access = module.params.get("public_access")
+    # delete_public_access = module.params.get("delete_public_access")
     delete_object_ownership = module.params.get("delete_object_ownership")
     object_ownership = module.params.get("object_ownership")
     acl = module.params.get("acl")
@@ -538,35 +538,35 @@ def create_or_update_bucket(s3_client, module, location):
         result['encryption'] = current_encryption
 
     # Public access clock configuration
-    current_public_access = {}
+    # current_public_access = {}
 
-    try:
-        current_public_access = get_bucket_public_access(s3_client, name)
-    except is_boto3_error_code(['NotImplemented', 'XNotImplemented']) as e:
-        if public_access is not None:
-            module.fail_json_aws(e, msg="Failed to get bucket public access configuration")
-    except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:  # pylint: disable=duplicate-except
-        module.fail_json_aws(e, msg="Failed to get bucket public access configuration")
-    else:
-        # -- Create / Update public access block
-        if public_access is not None:
-            camel_public_block = snake_dict_to_camel_dict(public_access, capitalize_first=True)
+    # try:
+    #     current_public_access = get_bucket_public_access(s3_client, name)
+    # except is_boto3_error_code(['NotImplemented', 'XNotImplemented']) as e:
+    #     if public_access is not None:
+    #         module.fail_json_aws(e, msg="Failed to get bucket public access configuration")
+    # except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:  # pylint: disable=duplicate-except
+    #     module.fail_json_aws(e, msg="Failed to get bucket public access configuration")
+    # else:
+    #     # -- Create / Update public access block
+    #     if public_access is not None:
+    #         camel_public_block = snake_dict_to_camel_dict(public_access, capitalize_first=True)
 
-            if current_public_access == camel_public_block:
-                result['public_access_block'] = current_public_access
-            else:
-                put_bucket_public_access(s3_client, name, camel_public_block)
-                changed = True
-                result['public_access_block'] = camel_public_block
+    #         if current_public_access == camel_public_block:
+    #             result['public_access_block'] = current_public_access
+    #         else:
+    #             put_bucket_public_access(s3_client, name, camel_public_block)
+    #             changed = True
+    #             result['public_access_block'] = camel_public_block
 
-        # -- Delete public access block
-        if delete_public_access:
-            if current_public_access == {}:
-                result['public_access_block'] = current_public_access
-            else:
-                delete_bucket_public_access(s3_client, name)
-                changed = True
-                result['public_access_block'] = {}
+    #     # -- Delete public access block
+    #     if delete_public_access:
+    #         if current_public_access == {}:
+    #             result['public_access_block'] = current_public_access
+    #         else:
+    #             delete_bucket_public_access(s3_client, name)
+    #             changed = True
+    #             result['public_access_block'] = {}
 
     # -- Bucket ownership
     try:
@@ -875,15 +875,15 @@ def get_current_bucket_tags_dict(s3_client, bucket_name):
     return boto3_tag_list_to_ansible_dict(current_tags)
 
 
-def get_bucket_public_access(s3_client, bucket_name):
-    '''
-    Get current bucket public access block
-    '''
-    try:
-        bucket_public_access_block = s3_client.get_public_access_block(Bucket=bucket_name)
-        return bucket_public_access_block['PublicAccessBlockConfiguration']
-    except is_boto3_error_code('NoSuchPublicAccessBlockConfiguration'):
-        return {}
+# def get_bucket_public_access(s3_client, bucket_name):
+#     '''
+#     Get current bucket public access block
+#     '''
+#     try:
+#         bucket_public_access_block = s3_client.get_public_access_block(Bucket=bucket_name)
+#         return bucket_public_access_block['PublicAccessBlockConfiguration']
+#     except is_boto3_error_code('NoSuchPublicAccessBlockConfiguration'):
+#         return {}
 
 
 def get_bucket_ownership_cntrl(s3_client, bucket_name):
