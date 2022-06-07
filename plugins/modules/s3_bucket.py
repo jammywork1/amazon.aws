@@ -451,25 +451,25 @@ def create_or_update_bucket(s3_client, module, location):
             if isinstance(policy, string_types):
                 policy = json.loads(policy)
 
-            if not policy and current_policy:
-                try:
-                    delete_bucket_policy(s3_client, name)
-                except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:
-                    module.fail_json_aws(e, msg="Failed to delete bucket policy")
-                current_policy = wait_policy_is_applied(module, s3_client, name, policy)
-                changed = True
-            elif compare_policies(current_policy, policy):
-                try:
-                    put_bucket_policy(s3_client, name, policy)
-                except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:
-                    module.fail_json_aws(e, msg="Failed to update bucket policy")
-                current_policy = wait_policy_is_applied(module, s3_client, name, policy, should_fail=False)
-                if current_policy is None:
-                    # As for request payement, it happens quite a lot of times that the put request was not taken into
-                    # account, so we retry one more time
-                    put_bucket_policy(s3_client, name, policy)
-                    current_policy = wait_policy_is_applied(module, s3_client, name, policy, should_fail=True)
-                changed = True
+        if not policy and current_policy:
+            try:
+                delete_bucket_policy(s3_client, name)
+            except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:
+                module.fail_json_aws(e, msg="Failed to delete bucket policy")
+            current_policy = wait_policy_is_applied(module, s3_client, name, policy)
+            changed = True
+        elif compare_policies(current_policy, policy):
+            try:
+                put_bucket_policy(s3_client, name, policy)
+            except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:
+                module.fail_json_aws(e, msg="Failed to update bucket policy")
+            current_policy = wait_policy_is_applied(module, s3_client, name, policy, should_fail=False)
+            if current_policy is None:
+                # As for request payement, it happens quite a lot of times that the put request was not taken into
+                # account, so we retry one more time
+                put_bucket_policy(s3_client, name, policy)
+                current_policy = wait_policy_is_applied(module, s3_client, name, policy, should_fail=True)
+            changed = True
 
         result['policy'] = current_policy
 
